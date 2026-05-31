@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RestauranteApp — Sistema de Gestión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    /* ── Variables y Reset ─────────────────────────────────── */
+    :root {
+      --bg:       #f5f3ee;
+      --surface:  #ffffff;
+      --border:   #e2ded6;
+      --text:     #1a1714;
+      --muted:    #7c7469;
+      --accent:   #c45c2a;
+      --accent2:  #2a7cc4;
+      --green:    #2a7c4f;
+      --red:      #c42a2a;
+      --radius:   10px;
+      --shadow:   0 2px 12px rgba(0,0,0,0.07);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ───────────────────────────────────────────── */
+    header {
+      background: var(--text);
+      color: #f5f3ee;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      height: 58px;
+      gap: 1.5rem;
+    }
+    header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.3rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+    header span { color: var(--accent); }
+
+    /* ── Nav tabs ─────────────────────────────────────────── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      padding: 0 1.5rem;
+    }
+    nav button {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.85rem 1.1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    nav button:hover { color: var(--text); }
+    nav button.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── Layout principal ─────────────────────────────────── */
+    main { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Tarjetas y grid ──────────────────────────────────── */
+    .page-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      font-weight: 400;
+      margin-bottom: 1.5rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.2rem;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media(max-width:700px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+    /* ── Tabla ────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+    th {
+      text-align: left;
+      padding: 0.6rem 0.8rem;
+      background: var(--bg);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: 0.65rem 0.8rem; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #faf8f5; }
+
+    /* ── Formularios ──────────────────────────────────────── */
+    .form-row { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 0.8rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 140px; }
+    label { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    input, select, textarea {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 0.7rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus { border-color: var(--accent); background: #fff; }
+
+    /* ── Botones ──────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary  { background: var(--accent);  color: #fff; }
+    .btn-primary:hover  { background: #a84d22; }
+    .btn-blue     { background: var(--accent2); color: #fff; }
+    .btn-blue:hover { background: #2268a8; }
+    .btn-green    { background: var(--green);   color: #fff; }
+    .btn-green:hover { background: #236040; }
+    .btn-outline  { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: var(--bg); }
+    .btn-danger   { background: var(--red);     color: #fff; }
+    .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.78rem; }
+
+    /* ── Badges de estado ─────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      border-radius: 99px;
+      padding: 0.15rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-prep   { background: #fff3e0; color: #e65100; }
+    .badge-done   { background: #e8f5e9; color: #2e7d32; }
+    .badge-paid   { background: #e3f2fd; color: #1565c0; }
+    .badge-cancel { background: #fce4ec; color: #c62828; }
+
+    /* ── Alertas / mensajes ───────────────────────────────── */
+    #msg {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      padding: 0.8rem 1.2rem;
+      border-radius: var(--radius);
+      font-size: 0.88rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 999;
+      max-width: 340px;
+    }
+    #msg.show { opacity: 1; }
+    #msg.ok  { background: var(--green); color: #fff; }
+    #msg.err { background: var(--red);   color: #fff; }
+
+    /* ── Stat cards ───────────────────────────────────────── */
+    .stat { text-align: center; }
+    .stat .val { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--accent); }
+    .stat .lbl { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* ── Spinner ──────────────────────────────────────────── */
+    .loading { color: var(--muted); font-size: 0.9rem; padding: 1rem 0; }
+
+    /* ── Separador de sección ─────────────────────────────── */
+    .section-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin: 1.5rem 0 0.8rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.4rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Restaurante<span>App</span></h1>
+  <span style="color:var(--muted);font-size:0.82rem">Sistema de Gestión</span>
+</header>
+
+<!-- Tabs de navegación -->
+<nav id="nav">
+  <button class="active" onclick="switchTab('productos')">🍔 Productos</button>
+  <button onclick="switchTab('clientes')">👥 Clientes</button>
+  <button onclick="switchTab('empleados')">👤 Empleados</button>
+  <button onclick="switchTab('ingredientes')">🥬 Inventario</button>
+  <button onclick="switchTab('ordenes')">📋 Órdenes</button>
+  <button onclick="switchTab('facturas')">🧾 Facturas</button>
+  <button onclick="switchTab('reportes')">📊 Reportes</button>
+</nav>
+
+<main>
+
+  <!-- ══════════════ PRODUCTOS ══════════════ -->
+  <div id="tab-productos" class="tab-panel active">
+    <h2 class="page-title">Productos del menú</h2>
+
+    <div class="card">
+      <p class="section-title">Agregar / editar producto</p>
+      <div class="form-row">
+        <div class="form-group"><label>Nombre</label><input id="p-nombre" placeholder="Ej. Hamburguesa"></div>
+        <div class="form-group"><label>Precio ($)</label><input id="p-precio" type="number" placeholder="15000"></div>
+        <div class="form-group"><label>Categoría</label>
+          <select id="p-cat">
+            <option>Fast Food</option><option>Ejecutivo</option><option>Postre</option>
+            <option>Entradas</option><option>Bebida Fría</option><option>Bebida Caliente</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Disponible</label>
+          <select id="p-disp"><option value="true">Sí</option><option value="false">No</option></select>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.6rem;align-items:center">
+        <button class="btn btn-primary" onclick="guardarProducto()">Guardar</button>
+        <button class="btn btn-outline" onclick="limpiarFormProducto()">Limpiar</button>
+        <input id="p-id" type="hidden">
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <span class="section-title" style="margin:0;border:none">Lista de productos</span>
+        <button class="btn btn-outline btn-sm" onclick="loadProductos()">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Categoría</th><th>Disp.</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-productos"><tr><td colspan="6" class="loading">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ CLIENTES ══════════════ -->
+  <div id="tab-clientes" class="tab-panel">
+    <h2 class="page-title">Clientes</h2>
+    <div class="card">
+      <p class="section-title">Registrar / editar cliente</p>
+      <div class="form-row">
+        <div class="form-group"><label>Nombre</label><input id="c-nombre" placeholder="Ana García"></div>
+        <div class="form-group"><label>Correo</label><input id="c-correo" type="email" placeholder="ana@email.com"></div>
+        <div class="form-group"><label>Teléfono</label><input id="c-tel" placeholder="321-XXX-1234"></div>
+      </div>
+      <input id="c-id" type="hidden">
+      <button class="btn btn-primary" onclick="guardarCliente()">Guardar</button>
+      <button class="btn btn-outline" style="margin-left:.5rem" onclick="limpiarFormCliente()">Limpiar</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <span class="section-title" style="margin:0;border:none">Lista de clientes</span>
+        <button class="btn btn-outline btn-sm" onclick="loadClientes()">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-clientes"><tr><td colspan="5" class="loading">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ EMPLEADOS ══════════════ -->
+  <div id="tab-empleados" class="tab-panel">
+    <h2 class="page-title">Empleados</h2>
+    <div class="card">
+      <p class="section-title">Registrar / editar empleado</p>
+      <div class="form-row">
+        <div class="form-group"><label>Nombre</label><input id="e-nombre" placeholder="Juan Pérez"></div>
+        <div class="form-group"><label>Correo</label><input id="e-correo" type="email"></div>
+        <div class="form-group"><label>Teléfono</label><input id="e-tel"></div>
+        <div class="form-group"><label>Rol</label>
+          <select id="e-rol">
+            <option>Gerente</option><option>Cajero/a</option><option>Cocinero/a</option><option>Mesero/a</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Salario</label><input id="e-salario" type="number" placeholder="1500000"></div>
+      </div>
+      <input id="e-id" type="hidden">
+      <button class="btn btn-primary" onclick="guardarEmpleado()">Guardar</button>
+      <button class="btn btn-outline" style="margin-left:.5rem" onclick="limpiarFormEmpleado()">Limpiar</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <span class="section-title" style="margin:0;border:none">Lista de empleados</span>
+        <button class="btn btn-outline btn-sm" onclick="loadEmpleados()">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Rol</th><th>Salario</th><th>Correo</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-empleados"><tr><td colspan="6" class="loading">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ INVENTARIO ══════════════ -->
+  <div id="tab-ingredientes" class="tab-panel">
+    <h2 class="page-title">Inventario de ingredientes</h2>
+    <div class="grid-2">
+      <div class="card">
+        <p class="section-title">Re-stock de ingrediente</p>
+        <div class="form-row">
+          <div class="form-group" style="flex:2">
+            <label>Ingrediente</label>
+            <select id="rs-id"></select>
+          </div>
+          <div class="form-group">
+            <label>Cantidad a pedir</label>
+            <input id="rs-cant" type="number" min="1" placeholder="50">
+          </div>
+        </div>
+        <button class="btn btn-green" onclick="restock()">📦 Realizar Pedido</button>
+      </div>
+      <div class="card">
+        <p class="section-title">⚠️ Inventario crítico</p>
+        <div id="inv-critico" class="loading">Cargando…</div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <span class="section-title" style="margin:0;border:none">Todo el inventario</span>
+        <button class="btn btn-outline btn-sm" onclick="loadIngredientes()">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Ingrediente</th><th>Cantidad</th><th>Unidad</th><th>Estado</th></tr></thead>
+          <tbody id="tb-ingredientes"><tr><td colspan="5" class="loading">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ ÓRDENES ══════════════ -->
+  <div id="tab-ordenes" class="tab-panel">
+    <h2 class="page-title">Órdenes</h2>
+
+    <div class="card">
+      <p class="section-title">Nueva orden</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cliente</label>
+          <select id="o-cliente"></select>
+        </div>
+        <div class="form-group">
+          <label>Empleado (mesero)</label>
+          <select id="o-empleado"></select>
+        </div>
+      </div>
+      <p class="section-title">Productos a pedir</p>
+      <div id="o-productos-lista" style="display:flex;flex-wrap:wrap;gap:0.6rem;margin-bottom:0.8rem">
+        <!-- se genera dinámicamente -->
+      </div>
+      <button class="btn btn-primary" onclick="crearOrden()">➕ Crear orden</button>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <span class="section-title" style="margin:0;border:none">Órdenes activas y recientes</span>
+        <button class="btn btn-outline btn-sm" onclick="loadOrdenes()">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>Empleado</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-ordenes"><tr><td colspan="6" class="loading">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ FACTURAS ══════════════ -->
+  <div id="tab-facturas" class="tab-panel">
+    <h2 class="page-title">Facturas</h2>
+    <div class="card">
+      <p class="section-title">Registrar pago de una orden</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Orden (solo terminadas)</label>
+          <select id="f-orden"></select>
+        </div>
+        <div class="form-group">
+          <label>Total a cobrar ($)</label>
+          <input id="f-precio" type="number" placeholder="26000">
+        </div>
+        <div class="form-group">
+          <label>Forma de pago</label>
+          <select id="f-pago"><option>Efectivo</option><option>Tarjeta</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="crearFactura()">🧾 Registrar factura</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <span class="section-title" style="margin:0;border:none">Historial de facturas</span>
+        <button class="btn btn-outline btn-sm" onclick="loadFacturas()">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Orden</th><th>Cliente</th><th>Total</th><th>Forma de pago</th><th>Fecha</th></tr></thead>
+          <tbody id="tb-facturas"><tr><td colspan="6" class="loading">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ REPORTES ══════════════ -->
+  <div id="tab-reportes" class="tab-panel">
+    <h2 class="page-title">Reportes</h2>
+
+    <!-- Resumen general -->
+    <div class="card" id="card-resumen">
+      <p class="section-title">Resumen de ingresos</p>
+      <div class="grid-3" id="stats-resumen">
+        <div class="stat loading">Cargando…</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Productos más vendidos (VIEW) -->
+      <div class="card">
+        <p class="section-title">🏆 Productos más vendidos <small style="font-weight:400;text-transform:none;letter-spacing:0">(via VISTA)</small></p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Producto</th><th>Categoría</th><th>Vendidos</th><th>Ingresos</th></tr></thead>
+            <tbody id="tb-vendidos"><tr><td colspan="4" class="loading">Cargando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Órdenes sin factura (subconsulta NOT EXISTS) -->
+      <div class="card">
+        <p class="section-title">⚠️ Órdenes pagadas sin factura <small style="font-weight:400;text-transform:none;letter-spacing:0">(subconsulta)</small></p>
+        <div id="ordenes-sf" class="loading">Cargando…</div>
+      </div>
+    </div>
+
+    <!-- Productos sobre promedio (subconsulta) -->
+    <div class="card">
+      <p class="section-title">💰 Productos con precio sobre el promedio <small style="font-weight:400;text-transform:none;letter-spacing:0">(subconsulta WHERE)</small></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th></tr></thead>
+          <tbody id="tb-sobre-promedio"><tr><td colspan="3" class="loading">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast de mensajes -->
+<div id="msg"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  UTILIDADES
+// ═══════════════════════════════════════════════════════════
+
+const API = '/api'; // Prefijo de todos los endpoints
+
+// Fetch con manejo de errores centralizado
+async function api(method, url, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+
+  const res = await fetch(API + url, opts);
+  if (res.status === 204) return null; // No content
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Error desconocido');
+  return data;
+}
+
+// Mostrar notificación en pantalla
+function toast(msg, ok = true) {
+  const el = document.getElementById('msg');
+  el.textContent = msg;
+  el.className = `show ${ok ? 'ok' : 'err'}`;
+  setTimeout(() => el.className = '', 3000);
+}
+
+// Formatear número como moneda colombiana
+const $ = n => 'COP ' + Number(n).toLocaleString('es-CO');
+
+// Badge de estado de orden
+function badge(estado) {
+  const m = { 'En preparación':'badge-prep','Terminada':'badge-done','Pagada':'badge-paid','Anulada':'badge-cancel' };
+  return `<span class="badge ${m[estado]||''}">${estado}</span>`;
+}
+
+// Cambiar de tab
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('nav button')[
+    ['productos','clientes','empleados','ingredientes','ordenes','facturas','reportes'].indexOf(tab)
+  ].classList.add('active');
+
+  // Cargar datos del tab al abrirlo
+  const loaders = {
+    productos: loadProductos,
+    clientes: loadClientes,
+    empleados: loadEmpleados,
+    ingredientes: loadIngredientes,
+    ordenes: () => { loadOrdenes(); loadSelectores(); },
+    facturas: () => { loadFacturas(); loadOrdenesTerminadas(); },
+    reportes: loadReportes
+  };
+  loaders[tab]?.();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PRODUCTOS
+// ═══════════════════════════════════════════════════════════
+
+async function loadProductos() {
+  const datos = await api('GET', '/productos');
+  const tb = document.getElementById('tb-productos');
+  if (!datos.length) { tb.innerHTML = '<tr><td colspan="6">Sin productos</td></tr>'; return; }
+  tb.innerHTML = datos.map(p => `
+    <tr>
+      <td>${p.id}</td>
+      <td><strong>${p.nombre}</strong></td>
+      <td>${$(p.precio)}</td>
+      <td>${p.categoria}</td>
+      <td>${p.disponible ? '✅' : '❌'}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editarProducto(${p.id},'${p.nombre}',${p.precio},'${p.categoria}',${p.disponible})">✏️</button>
+        <button class="btn btn-danger btn-sm" style="margin-left:.3rem" onclick="eliminarProducto(${p.id})">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function guardarProducto() {
+  const id = document.getElementById('p-id').value;
+  const body = {
+    nombre: document.getElementById('p-nombre').value,
+    precio: parseFloat(document.getElementById('p-precio').value),
+    categoria: document.getElementById('p-cat').value,
+    disponible: document.getElementById('p-disp').value === 'true'
+  };
+  try {
+    if (id) await api('PUT', '/productos/' + id, body);
+    else     await api('POST', '/productos', body);
+    toast('Producto guardado ✅');
+    limpiarFormProducto();
+    loadProductos();
+  } catch(e) { toast(e.message, false); }
+}
+
+function editarProducto(id, nombre, precio, cat, disp) {
+  document.getElementById('p-id').value = id;
+  document.getElementById('p-nombre').value = nombre;
+  document.getElementById('p-precio').value = precio;
+  document.getElementById('p-cat').value = cat;
+  document.getElementById('p-disp').value = String(disp);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function eliminarProducto(id) {
+  if (!confirm('¿Eliminar este producto?')) return;
+  try {
+    await api('DELETE', '/productos/' + id);
+    toast('Producto eliminado');
+    loadProductos();
+  } catch(e) { toast(e.message, false); }
+}
+
+function limpiarFormProducto() {
+  ['p-id','p-nombre','p-precio'].forEach(i => document.getElementById(i).value = '');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CLIENTES
+// ═══════════════════════════════════════════════════════════
+
+async function loadClientes() {
+  const datos = await api('GET', '/clientes');
+  const tb = document.getElementById('tb-clientes');
+  if (!datos.length) { tb.innerHTML = '<tr><td colspan="5">Sin clientes</td></tr>'; return; }
+  tb.innerHTML = datos.map(c => `
+    <tr>
+      <td>${c.id}</td>
+      <td><strong>${c.nombre}</strong></td>
+      <td>${c.correo}</td>
+      <td>${c.telefono||'—'}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editarCliente(${c.id},'${c.nombre}','${c.correo}','${c.telefono||''}')">✏️</button>
+        <button class="btn btn-danger btn-sm" style="margin-left:.3rem" onclick="eliminarCliente(${c.id})">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function guardarCliente() {
+  const id = document.getElementById('c-id').value;
+  const body = {
+    nombre: document.getElementById('c-nombre').value,
+    correo: document.getElementById('c-correo').value,
+    telefono: document.getElementById('c-tel').value
+  };
+  try {
+    if (id) await api('PUT', '/clientes/' + id, body);
+    else     await api('POST', '/clientes', body);
+    toast('Cliente guardado ✅');
+    limpiarFormCliente();
+    loadClientes();
+  } catch(e) { toast(e.message, false); }
+}
+
+function editarCliente(id, nombre, correo, tel) {
+  document.getElementById('c-id').value = id;
+  document.getElementById('c-nombre').value = nombre;
+  document.getElementById('c-correo').value = correo;
+  document.getElementById('c-tel').value = tel;
+}
+
+async function eliminarCliente(id) {
+  if (!confirm('¿Eliminar este cliente?')) return;
+  try {
+    await api('DELETE', '/clientes/' + id);
+    toast('Cliente eliminado');
+    loadClientes();
+  } catch(e) { toast(e.message, false); }
+}
+
+function limpiarFormCliente() {
+  ['c-id','c-nombre','c-correo','c-tel'].forEach(i => document.getElementById(i).value = '');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  EMPLEADOS
+// ═══════════════════════════════════════════════════════════
+
+async function loadEmpleados() {
+  const datos = await api('GET', '/empleados');
+  const tb = document.getElementById('tb-empleados');
+  tb.innerHTML = datos.map(e => `
+    <tr>
+      <td>${e.id}</td>
+      <td><strong>${e.nombre}</strong></td>
+      <td>${e.rol}</td>
+      <td>${$(e.salario)}</td>
+      <td>${e.correo}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editarEmpleado(${e.id},'${e.nombre}','${e.correo}','${e.telefono||''}','${e.rol}',${e.salario})">✏️</button>
+        <button class="btn btn-danger btn-sm" style="margin-left:.3rem" onclick="eliminarEmpleado(${e.id})">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function guardarEmpleado() {
+  const id = document.getElementById('e-id').value;
+  const body = {
+    nombre: document.getElementById('e-nombre').value,
+    correo: document.getElementById('e-correo').value,
+    telefono: document.getElementById('e-tel').value,
+    rol: document.getElementById('e-rol').value,
+    salario: parseFloat(document.getElementById('e-salario').value)
+  };
+  try {
+    if (id) await api('PUT', '/empleados/' + id, body);
+    else     await api('POST', '/empleados', body);
+    toast('Empleado guardado ✅');
+    limpiarFormEmpleado();
+    loadEmpleados();
+  } catch(e) { toast(e.message, false); }
+}
+
+function editarEmpleado(id, nombre, correo, tel, rol, salario) {
+  document.getElementById('e-id').value = id;
+  document.getElementById('e-nombre').value = nombre;
+  document.getElementById('e-correo').value = correo;
+  document.getElementById('e-tel').value = tel;
+  document.getElementById('e-rol').value = rol;
+  document.getElementById('e-salario').value = salario;
+}
+
+async function eliminarEmpleado(id) {
+  if (!confirm('¿Eliminar este empleado?')) return;
+  try {
+    await api('DELETE', '/empleados/' + id);
+    toast('Empleado eliminado');
+    loadEmpleados();
+  } catch(e) { toast(e.message, false); }
+}
+
+function limpiarFormEmpleado() {
+  ['e-id','e-nombre','e-correo','e-tel','e-salario'].forEach(i => document.getElementById(i).value = '');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INGREDIENTES / INVENTARIO
+// ═══════════════════════════════════════════════════════════
+
+async function loadIngredientes() {
+  const datos = await api('GET', '/ingredientes');
+  const tb = document.getElementById('tb-ingredientes');
+  tb.innerHTML = datos.map(i => `
+    <tr>
+      <td>${i.id}</td>
+      <td>${i.nombre}</td>
+      <td>${i.cantidad}</td>
+      <td>${i.unidad}</td>
+      <td>${i.stock_bajo
+        ? '<span class="badge badge-cancel">⚠️ Bajo</span>'
+        : '<span class="badge badge-done">OK</span>'}</td>
+    </tr>`).join('');
+
+  // Poblar selector de re-stock
+  const sel = document.getElementById('rs-id');
+  sel.innerHTML = datos.map(i => `<option value="${i.id}">${i.nombre} (${i.cantidad} ${i.unidad})</option>`).join('');
+
+  // Inventario crítico
+  const critico = datos.filter(i => i.stock_bajo);
+  const div = document.getElementById('inv-critico');
+  if (!critico.length) {
+    div.innerHTML = '<p style="color:var(--green);font-size:.9rem">✅ Todo el inventario está en buen estado</p>';
+  } else {
+    div.innerHTML = critico.map(i =>
+      `<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)">
+        <span>${i.nombre}</span>
+        <span style="color:var(--red);font-weight:600">${i.cantidad} ${i.unidad}</span>
+      </div>`).join('');
+  }
+}
+
+async function restock() {
+  const id   = document.getElementById('rs-id').value;
+  const cant = parseFloat(document.getElementById('rs-cant').value);
+  try {
+    await api('PATCH', `/ingredientes/${id}/restock`, { cantidad: cant });
+    toast('Stock actualizado ✅');
+    document.getElementById('rs-cant').value = '';
+    loadIngredientes();
+  } catch(e) { toast(e.message, false); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ÓRDENES
+// ═══════════════════════════════════════════════════════════
+
+async function loadSelectores() {
+  const [clientes, empleados, productos] = await Promise.all([
+    api('GET', '/clientes'),
+    api('GET', '/empleados'),
+    api('GET', '/productos')
+  ]);
+
+  document.getElementById('o-cliente').innerHTML =
+    clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+
+  // Solo meseros y gerentes en el selector de empleados
+  document.getElementById('o-empleado').innerHTML =
+    empleados.filter(e => ['Mesero/a','Gerente'].includes(e.rol))
+    .map(e => `<option value="${e.id}">${e.nombre} (${e.rol})</option>`).join('');
+
+  // Checkboxes de productos
+  document.getElementById('o-productos-lista').innerHTML = productos
+    .filter(p => p.disponible)
+    .map(p => `
+      <label style="display:flex;align-items:center;gap:.4rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem .7rem;cursor:pointer;font-size:.85rem">
+        <input type="checkbox" value="${p.id}" class="prod-check">
+        ${p.nombre}
+        <input type="number" min="1" value="1" style="width:45px;padding:.2rem .3rem;font-size:.8rem" class="prod-qty">
+      </label>`).join('');
+}
+
+async function loadOrdenes() {
+  const datos = await api('GET', '/ordenes');
+  const tb = document.getElementById('tb-ordenes');
+  if (!datos.length) { tb.innerHTML = '<tr><td colspan="6">Sin órdenes</td></tr>'; return; }
+  tb.innerHTML = datos.map(o => `
+    <tr>
+      <td>#${o.id}</td>
+      <td>${o.fecha_orden}</td>
+      <td>${o.cliente}</td>
+      <td>${o.empleado}</td>
+      <td>${badge(o.estado)}</td>
+      <td style="display:flex;gap:.3rem;flex-wrap:wrap">
+        ${o.estado === 'En preparación' ? `<button class="btn btn-green btn-sm" onclick="finalizarOrden(${o.id})">✅ Finalizar</button>` : ''}
+        ${o.estado === 'Terminada'      ? `<button class="btn btn-blue btn-sm" onclick="cambiarEstado(${o.id},'Pagada')">💳 Cobrar</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+
+async function crearOrden() {
+  const id_cliente  = document.getElementById('o-cliente').value;
+  const id_empleado = document.getElementById('o-empleado').value;
+  const checks  = document.querySelectorAll('.prod-check:checked');
+  if (!checks.length) { toast('Selecciona al menos un producto', false); return; }
+
+  const productos = Array.from(checks).map(cb => ({
+    id_producto: parseInt(cb.value),
+    cantidad:    parseInt(cb.closest('label').querySelector('.prod-qty').value) || 1
+  }));
+
+  try {
+    await api('POST', '/ordenes', { id_cliente: parseInt(id_cliente), id_empleado: parseInt(id_empleado), productos });
+    toast('Orden creada ✅');
+    loadOrdenes();
+  } catch(e) { toast(e.message, false); }
+}
+
+async function finalizarOrden(id) {
+  if (!confirm(`¿Finalizar la orden #${id}? Esto descontará los ingredientes del inventario.`)) return;
+  try {
+    await api('POST', `/ordenes/${id}/finalizar`);
+    toast('Orden finalizada e inventario ajustado ✅');
+    loadOrdenes();
+  } catch(e) { toast(e.message, false); }
+}
+
+async function cambiarEstado(id, estado) {
+  try {
+    await api('PATCH', `/ordenes/${id}/estado`, { estado });
+    toast(`Estado cambiado a "${estado}" ✅`);
+    loadOrdenes();
+  } catch(e) { toast(e.message, false); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FACTURAS
+// ═══════════════════════════════════════════════════════════
+
+async function loadOrdenesTerminadas() {
+  const datos = await api('GET', '/ordenes?estado=Terminada');
+  const sel = document.getElementById('f-orden');
+  if (!datos.length) {
+    sel.innerHTML = '<option>Sin órdenes terminadas</option>';
+    return;
+  }
+  sel.innerHTML = datos.map(o => `<option value="${o.id}">#${o.id} — ${o.cliente}</option>`).join('');
+}
+
+async function loadFacturas() {
+  const datos = await api('GET', '/facturas');
+  const tb = document.getElementById('tb-facturas');
+  if (!datos.length) { tb.innerHTML = '<tr><td colspan="6">Sin facturas</td></tr>'; return; }
+  tb.innerHTML = datos.map(f => `
+    <tr>
+      <td>${f.id}</td>
+      <td>#${f.id_orden}</td>
+      <td>${f.cliente}</td>
+      <td><strong>${$(f.precio)}</strong></td>
+      <td>${f.forma_pago}</td>
+      <td>${f.fecha_pago}</td>
+    </tr>`).join('');
+}
+
+async function crearFactura() {
+  const id_orden  = parseInt(document.getElementById('f-orden').value);
+  const precio    = parseFloat(document.getElementById('f-precio').value);
+  const forma_pago = document.getElementById('f-pago').value;
+  try {
+    await api('POST', '/facturas', { id_orden, precio, forma_pago });
+    toast('Factura registrada ✅');
+    loadFacturas();
+    loadOrdenesTerminadas();
+  } catch(e) { toast(e.message, false); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  REPORTES
+// ═══════════════════════════════════════════════════════════
+
+async function loadReportes() {
+  // 1. Resumen de ingresos
+  try {
+    const r = await api('GET', '/reportes/resumen-ingresos');
+    document.getElementById('stats-resumen').innerHTML = `
+      <div class="stat"><div class="val">${Number(r.total_facturas)}</div><div class="lbl">Facturas emitidas</div></div>
+      <div class="stat"><div class="val">${$(r.ingresos_totales)}</div><div class="lbl">Ingresos totales</div></div>
+      <div class="stat"><div class="val">${$(r.ticket_promedio)}</div><div class="lbl">Ticket promedio</div></div>
+    `;
+  } catch(e) { /* sin facturas aún */ }
+
+  // 2. Productos más vendidos (usa VISTA)
+  try {
+    const datos = await api('GET', '/reportes/productos-mas-vendidos');
+    document.getElementById('tb-vendidos').innerHTML = datos.map(p => `
+      <tr>
+        <td><strong>${p.nombre}</strong></td>
+        <td>${p.categoria}</td>
+        <td>${p.total_vendido}</td>
+        <td>${$(p.ingresos_generados)}</td>
+      </tr>`).join('');
+  } catch(e) {}
+
+  // 3. Órdenes sin factura (subconsulta NOT EXISTS)
+  try {
+    const datos = await api('GET', '/reportes/ordenes-sin-factura');
+    const div = document.getElementById('ordenes-sf');
+    if (!datos.length) {
+      div.innerHTML = '<p style="color:var(--green);font-size:.9rem">✅ Todas las órdenes pagadas tienen factura</p>';
+    } else {
+      div.innerHTML = datos.map(o =>
+        `<div style="padding:.35rem 0;border-bottom:1px solid var(--border);font-size:.88rem">
+          <strong>#${o.id}</strong> — ${o.cliente} <span style="color:var(--muted)">(${o.fecha_orden})</span>
+        </div>`).join('');
+    }
+  } catch(e) {}
+
+  // 4. Productos sobre promedio (subconsulta)
+  try {
+    const datos = await api('GET', '/productos/sobre-promedio');
+    document.getElementById('tb-sobre-promedio').innerHTML = datos.map(p => `
+      <tr>
+        <td><strong>${p.nombre}</strong></td>
+        <td>${p.categoria}</td>
+        <td>${$(p.precio)}</td>
+      </tr>`).join('');
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INICIO — Cargar la primera pestaña al abrir la app
+// ═══════════════════════════════════════════════════════════
+loadProductos();
+</script>
+</body>
+</html>
