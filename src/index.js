@@ -18,6 +18,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // ── Rutas de la API ───────────────────────────────────────────
 // Cada archivo de rutas se encarga de un recurso específico.
+app.use('/api/auth',        require('./routes/auth'));
 app.use('/api/productos',   require('./routes/productos'));
 app.use('/api/clientes',    require('./routes/clientes'));
 app.use('/api/empleados',   require('./routes/empleados'));
@@ -29,7 +30,6 @@ app.use('/api/reportes',    require('./routes/reportes'));
 // ── Ruta raíz de la API (health check) ───────────────────────
 app.get('/api', (req, res) => {
   res.json({
-    mensaje: '>>> API Restaurante funcionando correctamente.',
     version: '1.0.0',
     endpoints: [
       'GET  /api/productos',

@@ -276,37 +276,6 @@ INSERT INTO productos_ingredientes (id_producto, id_ingrediente, cantidad) VALUE
     -- Agua Mineral (id=8)
     (8, 27, 1.00);  -- Agua Mineral 500ml 1 unidad
 
-----------------------------------
--- TEST productos en cada orden --
-----------------------------------
-
-SELECT op.id_orden, p.nombre, op.cantidad FROM ordenes_productos op
-JOIN productos p ON p.id = op.id_producto;
-    
--- --------------------------
--- -- CONSULTAS DE EJEMPLO --
--- --------------------------
-
--- -- ¿Cuáles facturas tienen un precio mayor al promedio general?
-
--- SELECT id_orden, precio, fecha_pago, forma_pago FROM facturas
--- WHERE precio > (SELECT AVG(precio) FROM facturas);
-
--- -- ¿Qué clientes han pagado con efectivo y el promedio de sus facturas es mayor al promedio de esa forma de pago? 
-
--- SELECT c.nombre, ROUND(AVG(f.precio), 2) AS promedio_factura FROM clientes c
--- JOIN ordenes o ON c.id = o.id_cliente
--- JOIN facturas f ON o.id = f.id_orden
--- WHERE f.forma_pago = 'Efectivo'
--- GROUP BY c.nombre
--- HAVING AVG(f.precio) > (SELECT AVG(precio) FROM facturas WHERE forma_pago = 'Efectivo');
-
--- -- ¿Qué ordenes han sido pagadas pero no han generado una factura?
-
--- SELECT o.id, o.fecha_orden, o.estado FROM ordenes o
--- WHERE o.estado = 'Pagada' AND NOT EXISTS (
---     SELECT 1 FROM facturas f WHERE f.id_orden = o.id
--- );
 -------------------------------------------------
 -- VISTAS (R4)                                 --
 -------------------------------------------------
@@ -346,3 +315,59 @@ FROM  productos p
 LEFT  JOIN ordenes_productos op ON op.id_producto = p.id
 LEFT  JOIN ordenes           o  ON o.id = op.id_orden AND o.estado = 'Pagada'
 GROUP BY p.id, p.nombre, p.categoria, p.precio;
+
+-- -- Crear los roles de BD
+-- CREATE ROLE rol_mesero   LOGIN PASSWORD 'pass1';
+-- CREATE ROLE rol_cajero   LOGIN PASSWORD 'pass2';
+-- CREATE ROLE rol_cocinero LOGIN PASSWORD 'pass3';
+-- CREATE ROLE rol_gerente  LOGIN PASSWORD 'pass4';
+
+-- -- Mesero: solo puede leer clientes y crear/leer órdenes
+-- GRANT SELECT, INSERT ON clientes          TO rol_mesero;
+-- GRANT SELECT, INSERT ON ordenes           TO rol_mesero;
+-- GRANT SELECT, INSERT ON ordenes_productos TO rol_mesero;
+
+-- -- Cocinero: puede leer órdenes y actualizar ingredientes
+-- GRANT SELECT         ON ordenes           TO rol_cocinero;
+-- GRANT SELECT, UPDATE ON ingredientes      TO rol_cocinero;
+
+-- -- Cajero: puede leer órdenes y gestionar facturas y clientes
+-- GRANT SELECT         ON ordenes           TO rol_cajero;
+-- GRANT SELECT, INSERT ON facturas          TO rol_cajero;
+-- GRANT SELECT, INSERT, UPDATE ON clientes  TO rol_cajero;
+
+-- -- Gerente: acceso total
+-- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO rol_gerente;
+
+
+----------------------------------
+-- TEST productos en cada orden --
+----------------------------------
+
+-- SELECT op.id_orden, p.nombre, op.cantidad FROM ordenes_productos op
+-- JOIN productos p ON p.id = op.id_producto;
+    
+-- --------------------------
+-- -- CONSULTAS DE EJEMPLO --
+-- --------------------------
+
+-- -- ¿Cuáles facturas tienen un precio mayor al promedio general?
+
+-- SELECT id_orden, precio, fecha_pago, forma_pago FROM facturas
+-- WHERE precio > (SELECT AVG(precio) FROM facturas);
+
+-- -- ¿Qué clientes han pagado con efectivo y el promedio de sus facturas es mayor al promedio de esa forma de pago? 
+
+-- SELECT c.nombre, ROUND(AVG(f.precio), 2) AS promedio_factura FROM clientes c
+-- JOIN ordenes o ON c.id = o.id_cliente
+-- JOIN facturas f ON o.id = f.id_orden
+-- WHERE f.forma_pago = 'Efectivo'
+-- GROUP BY c.nombre
+-- HAVING AVG(f.precio) > (SELECT AVG(precio) FROM facturas WHERE forma_pago = 'Efectivo');
+
+-- -- ¿Qué ordenes han sido pagadas pero no han generado una factura?
+
+-- SELECT o.id, o.fecha_orden, o.estado FROM ordenes o
+-- WHERE o.estado = 'Pagada' AND NOT EXISTS (
+--     SELECT 1 FROM facturas f WHERE f.id_orden = o.id
+-- );

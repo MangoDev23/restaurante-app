@@ -209,24 +209,84 @@
       border-bottom: 1px solid var(--border);
       padding-bottom: 0.4rem;
     }
+
+    /* ── Login overlay ────────────────────────────────────── */
+    #login-screen {
+      position: fixed; inset: 0;
+      background: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    #login-screen.hidden { display: none; }
+    .login-box {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 2.5rem 2.8rem;
+      width: 100%; max-width: 380px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .login-box h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem; font-weight: 400;
+      margin-bottom: 0.3rem;
+    }
+    .login-box p { color: var(--muted); font-size: 0.87rem; margin-bottom: 1.6rem; }
+    .login-error { color: var(--red); font-size: 0.84rem; margin-top: 0.6rem; min-height: 1.2em; }
+
+    /* ── Chip del usuario en el header ───────────────────── */
+    .user-chip {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 0.7rem;
+      font-size: 0.82rem; color: #c8c0b4;
+    }
+    .user-chip strong { color: #f5f3ee; }
+    .btn-logout {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #f5f3ee; border-radius: 5px;
+      padding: 0.25rem 0.65rem; font-size: 0.78rem;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.2); }
+    nav button.hidden-tab { display: none; }
   </style>
 </head>
 <body>
 
+<!-- ── Pantalla de login ──────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-box">
+    <h2>Restaurante<span style="color:var(--accent)">App</span></h2>
+    <p>Ingresa tu correo institucional para continuar</p>
+    <div class="form-group" style="margin-bottom:0.8rem">
+      <label>Correo</label>
+      <input id="login-correo" type="email" placeholder="juan.rodriguez@example.com"
+             onkeydown="if(event.key==='Enter') login()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center"
+            onclick="login()">Ingresar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
 <header>
   <h1>Restaurante<span>App</span></h1>
-  <span style="color:var(--muted);font-size:0.82rem">Sistema de Gestión</span>
+  <div class="user-chip" id="user-chip" style="display:none">
+    <span>👤 <strong id="user-name"></strong> — <span id="user-rol"></span></span>
+    <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+  </div>
 </header>
 
 <!-- Tabs de navegación -->
 <nav id="nav">
-  <button class="active" onclick="switchTab('productos')">🍔 Productos</button>
-  <button onclick="switchTab('clientes')">👥 Clientes</button>
-  <button onclick="switchTab('empleados')">👤 Empleados</button>
-  <button onclick="switchTab('ingredientes')">🥬 Inventario</button>
-  <button onclick="switchTab('ordenes')">📋 Órdenes</button>
-  <button onclick="switchTab('facturas')">🧾 Facturas</button>
-  <button onclick="switchTab('reportes')">📊 Reportes</button>
+  <button data-tab="productos"    class="active" onclick="switchTab('productos')">🍔 Productos</button>
+  <button data-tab="clientes"                    onclick="switchTab('clientes')">👥 Clientes</button>
+  <button data-tab="empleados"                   onclick="switchTab('empleados')">👤 Empleados</button>
+  <button data-tab="ingredientes"                onclick="switchTab('ingredientes')">🥬 Inventario</button>
+  <button data-tab="ordenes"                     onclick="switchTab('ordenes')">📋 Órdenes</button>
+  <button data-tab="facturas"                    onclick="switchTab('facturas')">🧾 Facturas</button>
+  <button data-tab="reportes"                    onclick="switchTab('reportes')">📊 Reportes</button>
 </nav>
 
 <main>
@@ -345,11 +405,9 @@
             <select id="rs-id"></select>
           </div>
           <div class="form-group">
-            <label>Cantidad a pedir</label>
             <input id="rs-cant" type="number" min="1" placeholder="50">
           </div>
         </div>
-        <button class="btn btn-green" onclick="restock()">📦 Realizar Pedido</button>
       </div>
       <div class="card">
         <p class="section-title">⚠️ Inventario crítico</p>
@@ -532,11 +590,10 @@ function badge(estado) {
 // Cambiar de tab
 function switchTab(tab) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('nav button[data-tab]').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
-  document.querySelectorAll('nav button')[
-    ['productos','clientes','empleados','ingredientes','ordenes','facturas','reportes'].indexOf(tab)
-  ].classList.add('active');
+  const btn = document.querySelector(`nav button[data-tab="${tab}"]`);
+  if (btn) btn.classList.add('active');
 
   // Cargar datos del tab al abrirlo
   const loaders = {
@@ -818,9 +875,13 @@ async function loadOrdenes() {
       <td>${o.cliente}</td>
       <td>${o.empleado}</td>
       <td>${badge(o.estado)}</td>
-      <td style="display:flex;gap:.3rem;flex-wrap:wrap">
-        ${o.estado === 'En preparación' ? `<button class="btn btn-green btn-sm" onclick="finalizarOrden(${o.id})">✅ Finalizar</button>` : ''}
-        ${o.estado === 'Terminada'      ? `<button class="btn btn-blue btn-sm" onclick="cambiarEstado(${o.id},'Pagada')">💳 Cobrar</button>` : ''}
+      <td>
+        <div style="display:flex;gap:.3rem;flex-wrap:wrap;align-items:center;min-height:28px">
+          ${o.estado === 'En preparación' && puedeVer(['Gerente','Cajero/a','Cocinero/a','Mesero/a'])
+            ? `<button class="btn btn-green btn-sm" onclick="finalizarOrden(${o.id})">✅ Finalizar</button>` : ''}
+          ${o.estado === 'Terminada' && puedeVer(['Gerente','Cajero/a'])
+            ? `<button class="btn btn-blue btn-sm" onclick="cambiarEstado(${o.id},'Pagada')">💳 Cobrar</button>` : ''}
+        </div>
       </td>
     </tr>`).join('');
 }
@@ -955,9 +1016,69 @@ async function loadReportes() {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  INICIO — Cargar la primera pestaña al abrir la app
+//  AUTH — Login y control de permisos
 // ═══════════════════════════════════════════════════════════
-loadProductos();
+
+// Tabs visibles por rol
+const PERMISOS = {
+  'Gerente':    ['productos','clientes','empleados','ingredientes','ordenes','facturas','reportes'],
+  'Cajero/a':   ['clientes','ordenes','facturas'],
+  'Cocinero/a': ['ingredientes','ordenes'],
+  'Mesero/a':   ['clientes','ordenes'],
+};
+
+const TABS = ['productos','clientes','empleados','ingredientes','ordenes','facturas','reportes'];
+
+// Usuario actualmente logueado (null = no autenticado)
+let currentUser = null;
+
+// Verifica si el usuario actual tiene alguno de los roles indicados
+function puedeVer(roles) {
+  return currentUser && roles.includes(currentUser.rol);
+}
+
+async function login() {
+  const correo = document.getElementById('login-correo').value.trim();
+  const errEl  = document.getElementById('login-error');
+  errEl.textContent = '';
+
+  try {
+    const data = await api('POST', '/auth/login', { correo });
+    currentUser = data.empleado;
+
+    // Actualizar chip del header
+    document.getElementById('user-name').textContent = currentUser.nombre;
+    document.getElementById('user-rol').textContent  = currentUser.rol;
+    document.getElementById('user-chip').style.display = 'flex';
+
+    // Mostrar solo los tabs del rol
+    const permitidos = PERMISOS[currentUser.rol] || [];
+    document.querySelectorAll('nav button[data-tab]').forEach(btn => {
+      const tab = btn.dataset.tab;
+      btn.classList.toggle('hidden-tab', !permitidos.includes(tab));
+    });
+
+    // Ocultar login y mostrar app
+    document.getElementById('login-screen').classList.add('hidden');
+
+    // Navegar al primer tab permitido
+    switchTab(permitidos[0]);
+  } catch(e) {
+    errEl.textContent = e.message;
+  }
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('login-correo').value = '';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('user-chip').style.display = 'none';
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INICIO — No cargar datos hasta que el usuario inicie sesión
+// ═══════════════════════════════════════════════════════════
 </script>
 </body>
 </html>
