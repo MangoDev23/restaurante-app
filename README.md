@@ -56,7 +56,7 @@ npm start
 
 ## Diagrama ER
 
-> *(Agregar imagen del diagrama aquí — exportar desde DBeaver o dbdiagram.io)*
+![Logo](resources\ERD DB Proyecto Final Basic Constraints.PNG)
 
 ---
 
