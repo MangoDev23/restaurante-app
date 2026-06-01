@@ -10,14 +10,6 @@ Aplicación web para gestionar las operaciones diarias de un restaurante: emplea
 
 ---
 
-## Integrantes
-
-| Nombre | Rol en el proyecto |
-|--------|-------------------|
-| ...    | ...               |
-
----
-
 ## Requisitos previos
 
 - Node.js v18 o superior
