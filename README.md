@@ -48,7 +48,7 @@ npm start
 
 ## Diagrama ER
 
-![Logo](resources\ERD DB Proyecto Final Basic Constraints.PNG)
+![Diagrama ER](https://github.com/MangoDev23/restaurante-app/blob/1657b6161e1ca866d890163e1dc6597b4c411765/resources/ERD%20DB%20Proyecto%20Final%20Basic%20Constraints.PNG)
 
 ---
 
