@@ -39,13 +39,13 @@ npm install
 # 3. Crear la base de datos en PostgreSQL
 #    (desde psql o pgAdmin)
 CREATE DATABASE restaurante;
-
-# 4. Cargar el esquema y datos de prueba
+# //
 psql -U postgres -d restaurante -f sql/restaurante.sql
 
 # 5. Configurar variables de entorno
-cp .env.example .env
+cp .env
 # Editar .env con tus credenciales de PostgreSQL
+# ie. user: postgres pass: postgres
 
 # 6. Iniciar el servidor
 npm start
@@ -129,7 +129,6 @@ npm start
 
 ---
 
-## Requerimientos funcionales implementados (R5)
 
 1. **RF1 — Crear y gestionar órdenes**: Un mesero puede crear una orden asignando cliente, empleado y productos. La orden inicia en estado "En preparación".
 
